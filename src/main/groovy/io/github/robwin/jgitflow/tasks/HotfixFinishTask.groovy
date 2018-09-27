@@ -17,38 +17,65 @@
  *
  */
 package io.github.robwin.jgitflow.tasks
+
 import com.atlassian.jgitflow.core.JGitFlow
 import com.atlassian.jgitflow.core.ReleaseMergeResult
 import io.github.robwin.jgitflow.tasks.credentialsprovider.CredentialsProviderHelper
+import io.github.robwin.jgitflow.tasks.helper.GradlePropertiesHelper
+import org.eclipse.jgit.api.Git
 import org.gradle.api.GradleException
 import org.gradle.api.tasks.TaskAction
 
-class HotfixFinishTask extends AbstractCommandTask  {
+import static io.github.robwin.jgitflow.tasks.helper.GitHelper.commitGradlePropertiesFile
+
+class HotfixFinishTask extends AbstractCommandTask {
 
     @TaskAction
-    void finish(){
-        String hotfixName = project.property('hotfixName')
-        CredentialsProviderHelper.setupCredentialProvider(project)
+    void finish() {
+
+        CredentialsProviderHelper.requireCredentials(project)
         JGitFlow flow = JGitFlow.get(project.rootProject.rootDir)
-        def command = flow.hotfixFinish(hotfixName)
+        Git git = flow.git()
+
+        String currentBranch = git.getRepository().getBranch()
+        if (!currentBranch.startsWith(flow.getHotfixBranchPrefix())) {
+            throw new GradleException("Are you on hotfix branch?")
+        }
+
+        git.fetch().call()
+
+        String hotfixVersion = GradlePropertiesHelper.getProjectVersion(project)
+
+        flow.git().checkout().setName(flow.getDevelopBranchName()).call()
+        String snapshotVersion = GradlePropertiesHelper.readPropertyFromGradleFile(project, "version")
+
+        GradlePropertiesHelper.updateGradlePropertiesFile(project, hotfixVersion)
+        commitGradlePropertiesFile(flow.git(),
+                "Updated gradle.properties to hotfix version '${hotfixVersion}' to avoid merge conflicts")
+
+        //checkout hotfix branch
+        flow.git().checkout().setName(flow.getHotfixBranchPrefix() + hotfixVersion).call()
+
+        def command = flow.hotfixFinish(hotfixVersion)
 
         setCommandPrefixAndSuffix(command)
 
         ReleaseMergeResult mergeResult = command.call()
-        if (!mergeResult.wasSuccessful())
-        {
-            if (mergeResult.masterHasProblems())
-            {
-                logger.error("Error merging into " + flow.getMasterBranchName() + ":");
-                logger.error(mergeResult.getMasterResult().toString());
+        if (!mergeResult.wasSuccessful()) {
+            if (mergeResult.masterHasProblems()) {
+                logger.error("Error merging into " + flow.getMasterBranchName() + ":")
+                logger.error(mergeResult.getMasterResult().toString())
             }
 
-            if (mergeResult.developHasProblems())
-            {
-                logger.error("Error merging into " + flow.getDevelopBranchName() + ":");
-                logger.error(mergeResult.getDevelopResult().toString());
+            if (mergeResult.developHasProblems()) {
+                logger.error("Error merging into " + flow.getDevelopBranchName() + ":")
+                logger.error(mergeResult.getDevelopResult().toString())
             }
-            throw new GradleException("Error while merging hotfix!");
+            throw new GradleException("Error while merging hotfix!")
+        } else {
+            GradlePropertiesHelper.updateGradlePropertiesFile(project, snapshotVersion)
+            commitGradlePropertiesFile(flow.git(),
+                    "Updated gradle.properties version '${snapshotVersion}' back to pre-merge state")
         }
         flow.git().close()
     }
