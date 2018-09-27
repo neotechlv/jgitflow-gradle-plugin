@@ -43,15 +43,15 @@ class JGitflowTaskSpec extends Specification{
     static final RELEASE_VERSION_2 = '0.0.2'
     static final RELEASE_VERSION_3 = '0.0.3'
     static final RELEASE_VERSION_4 = '0.0.4'
-    static final RELEASE_VERSION_5 = '0.0.5'
+    static final RELEASE_VERSION_5 = '0.1.0'
     static final RELEASE_VERSION_6 = '0.0.6'
     static final RELEASE_VERSION_7 = '0.0.7'
     static final NEW_VERSION_1 = '0.0.2-SNAPSHOT'
     static final NEW_VERSION_2 = '0.0.3-SNAPSHOT'
     static final NEW_VERSION_3 = '0.0.4-SNAPSHOT'
-    static final NEW_VERSION_4 = '0.0.5-SNAPSHOT'
-    static final NEW_VERSION_5 = '0.0.6-SNAPSHOT'
-    static final NEW_VERSION_6 = '0.0.7-SNAPSHOT'
+    static final NEW_VERSION_4 = '0.1.0-SNAPSHOT'
+    static final NEW_VERSION_5 = '0.2.0-SNAPSHOT'
+    static final NEW_VERSION_6 = '0.1.0-SNAPSHOT'
     static final NEW_VERSION_7 = '0.0.8-SNAPSHOT'
     static final SCM_MESSAGE_PREFIX = 'TEST-123'
     static final SCM_MESSAGE_SUFFIX = '[JGitFlow Gradle Plugin]'
@@ -109,7 +109,7 @@ class JGitflowTaskSpec extends Specification{
                 .withProjectDir(localGit.repository.directory.parentFile)
                 .build()
         project.version = PROJECT_VERSION
-        project.ext.set('gitUserName', GIT_USERNAME)
+        project.ext.set('gitUsername', GIT_USERNAME)
         project.ext.set('gitPassword', GIT_PASSWORD)
         project.pluginManager.apply 'io.github.robwin.jgitflow'
 

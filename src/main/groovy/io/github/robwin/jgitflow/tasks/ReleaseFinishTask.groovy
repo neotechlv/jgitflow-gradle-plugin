@@ -17,46 +17,50 @@
  *
  */
 package io.github.robwin.jgitflow.tasks
+
 import com.atlassian.jgitflow.core.JGitFlow
 import com.atlassian.jgitflow.core.ReleaseMergeResult
 import io.github.robwin.jgitflow.tasks.credentialsprovider.CredentialsProviderHelper
 import io.github.robwin.jgitflow.tasks.helper.ArtifactHelper
+import io.github.robwin.jgitflow.tasks.helper.GradlePropertiesHelper
 import org.gradle.api.GradleException
 import org.gradle.api.tasks.TaskAction
 
 import static io.github.robwin.jgitflow.tasks.helper.GitHelper.commitGradlePropertiesFile
-import static io.github.robwin.jgitflow.tasks.helper.GitHelper.updateGradlePropertiesFile
 
 class ReleaseFinishTask extends AbstractCommandTask {
 
-    String DEFAULT_NEW_VERSION_INCREMENT = "PATCH"
+    static final String DEFAULT_NEW_VERSION_INCREMENT = "MINOR"
+
+    static final String NEW_VERSION_PROP_NAME = "newVersion"
+    static final String NEW_VERSION_INCREMENT_PROP_NAME = "newVersionIncrement"
+    static final String RELEASE_VERSION_PROP_NAME = "releaseVersion"
+    static final String PUSH_RELEASE_PROP_NAME = "pushRelease"
 
     @TaskAction
-    void finish(){
-        String newVersionIncrement = project.properties['newVersionIncrement'] ?: DEFAULT_NEW_VERSION_INCREMENT;
-        String releaseVersion = project.properties['releaseVersion']?:loadVersionFromGradleProperties()
-        String newVersion = project.properties['newVersion']?:ArtifactHelper.newSnapshotVersion(releaseVersion, newVersionIncrement)
-        boolean pushRelease = true
-        if (project.properties.containsKey('pushRelease')) {
-            pushRelease = Boolean.valueOf(project.property('pushRelease') as String)
-        }
+    void finish() {
+
         CredentialsProviderHelper.setupCredentialProvider(project)
         JGitFlow flow = JGitFlow.get(project.rootProject.rootDir)
+
+        flow.git().fetch().call()
+
+        String newVersionIncrement = project.properties[NEW_VERSION_INCREMENT_PROP_NAME] ?: DEFAULT_NEW_VERSION_INCREMENT
+        String releaseVersion = project.properties[RELEASE_VERSION_PROP_NAME] ?: GradlePropertiesHelper.getProjectVersion(project)
+        String newVersion = project.properties[NEW_VERSION_PROP_NAME] ?: ArtifactHelper.newSnapshotVersion(releaseVersion, newVersionIncrement)
+        boolean pushRelease = project.hasProperty(PUSH_RELEASE_PROP_NAME) ? Boolean.valueOf(project.property(PUSH_RELEASE_PROP_NAME)) : true
+
         def command = flow.releaseFinish(releaseVersion)
 
         setCommandPrefixAndSuffix(command)
 
         ReleaseMergeResult mergeResult = command.call()
-        if (!mergeResult.wasSuccessful())
-        {
-            if (mergeResult.masterHasProblems())
-            {
+        if (!mergeResult.wasSuccessful()) {
+            if (mergeResult.masterHasProblems()) {
                 logger.error("Error merging into " + flow.getMasterBranchName() + ":")
                 logger.error(mergeResult.getMasterResult().toString());
             }
-
-            if (mergeResult.developHasProblems())
-            {
+            if (mergeResult.developHasProblems()) {
                 logger.error("Error merging into " + flow.getDevelopBranchName() + ":")
                 logger.error(mergeResult.getDevelopResult().toString());
             }
@@ -65,10 +69,11 @@ class ReleaseFinishTask extends AbstractCommandTask {
         //Local working copy is now on develop branch
 
         //Update the develop version to the new version
-        updateGradlePropertiesFile(project, newVersion)
+        GradlePropertiesHelper.updateGradlePropertiesFile(project, newVersion)
 
         //Commit the release version
-        commitGradlePropertiesFile(flow.git(), getScmMessagePrefix(command) + "Updated gradle.properties to version '${newVersion}'" + getScmMessageSuffix(command))
+        commitGradlePropertiesFile(flow.git(), getScmMessagePrefix(command)
+                + "Updated gradle.properties to version '${newVersion}'" + getScmMessageSuffix(command))
 
         if (pushRelease) {
             flow.git().push().setPushAll().setPushTags().call();
@@ -77,11 +82,4 @@ class ReleaseFinishTask extends AbstractCommandTask {
         flow.git().close()
     }
 
-
-    private String loadVersionFromGradleProperties() {
-        if(!project.hasProperty('version')) {
-            throw new GradleException('version or releaseVersion property have to be present')
-        }
-        ArtifactHelper.removeSnapshot(project.property('version') as String)
-    }
 }

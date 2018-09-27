@@ -46,27 +46,28 @@ public class ArtifactHelper {
         return Version.valueOf(version).getNormalVersion();
     }
 
-    public static String newSnapshotVersion(String releaseVersion, String newVersionIncrement) {
+    public static String newSnapshotVersion(String version, String versionStrategy) {
+        return Version.valueOf(incrementVersion(version, versionStrategy))
+                .setPreReleaseVersion(SNAPSHOT_VERSION)
+                .toString();
+    }
 
-        switch (newVersionIncrement.toUpperCase()) {
+    public static String incrementVersion(String version, String versionStrategy) {
+        switch (versionStrategy.toUpperCase()) {
             case "PATCH":
-                return Version.valueOf(releaseVersion)
+                return Version.valueOf(version)
                         .incrementPatchVersion()
-                        .setPreReleaseVersion(SNAPSHOT_VERSION)
                         .toString();
             case "MINOR":
-                return Version.valueOf(releaseVersion)
+                return Version.valueOf(version)
                         .incrementMinorVersion()
-                        .setPreReleaseVersion(SNAPSHOT_VERSION)
                         .toString();
             case "MAJOR":
-                return Version.valueOf(releaseVersion)
+                return Version.valueOf(version)
                         .incrementMajorVersion()
-                        .setPreReleaseVersion(SNAPSHOT_VERSION)
                         .toString();
             default:
-                throw new GradleException("Invalid value '" + newVersionIncrement + "' for newVersionIncrement Property");
-
+                throw new GradleException("Invalid version value '" + version);
         }
     }
 

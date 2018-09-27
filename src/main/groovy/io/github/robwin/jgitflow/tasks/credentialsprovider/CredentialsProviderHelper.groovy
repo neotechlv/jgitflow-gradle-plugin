@@ -22,17 +22,35 @@ import com.atlassian.jgitflow.core.JGitFlowReporter
 import com.google.common.base.Strings
 import org.eclipse.jgit.transport.CredentialsProvider
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 
 class CredentialsProviderHelper {
-    public static void setupCredentialProvider(Project project) {
-        if (project.hasProperty('gitUsername') && project.hasProperty('gitPassword')) {
-            String username = project.property("gitUsername")
-            String password = project.property("gitPassword")
-            if (!Strings.isNullOrEmpty(username) && !Strings.isNullOrEmpty(password)) {
-                JGitFlowReporter.get().debugText(getClass().getSimpleName(), "using provided username and password");
-                CredentialsProvider.setDefault(new UsernamePasswordCredentialsProvider(username, password));
-            }
+
+    static final String GIT_USERNAME_PROP_NAME = "gitUsername"
+    static final String GIT_PASSWORD_PROP_NAME = "gitPassword"
+
+    static void setupCredentialProvider(Project project) {
+        if (project.hasProperty(GIT_USERNAME_PROP_NAME) && project.hasProperty(GIT_PASSWORD_PROP_NAME)) {
+            setCredentialsProvider(project)
         }
     }
+
+    static void requireCredentials(Project project) {
+        if (!setCredentialsProvider(project)) {
+            throw new GradleException("Git credentials are required: -PgitUsername=XXX and -PgitPassword=XXX")
+        }
+    }
+
+    private static boolean setCredentialsProvider(Project project) {
+        String username = project.property(GIT_USERNAME_PROP_NAME)
+        String password = project.property(GIT_PASSWORD_PROP_NAME)
+        if (!Strings.isNullOrEmpty(username) && !Strings.isNullOrEmpty(password)) {
+            JGitFlowReporter.get().debugText(getClass().getSimpleName(), "using provided username and password")
+            CredentialsProvider.setDefault(new UsernamePasswordCredentialsProvider(username, password))
+            return true
+        }
+        return false
+    }
+
 }
