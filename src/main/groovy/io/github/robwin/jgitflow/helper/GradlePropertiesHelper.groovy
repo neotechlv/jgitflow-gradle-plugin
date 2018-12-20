@@ -1,4 +1,4 @@
-package io.github.robwin.jgitflow.tasks.helper
+package io.github.robwin.jgitflow.helper
 
 import org.apache.tools.ant.BuildException
 import org.gradle.api.GradleException
@@ -6,7 +6,24 @@ import org.gradle.api.Project
 
 class GradlePropertiesHelper {
 
-    static void updateGradlePropertiesFile(Project project, String version) {
+    private static final String VERSION_PROP_NAME = "version";
+
+    static String readVersionFromGradleFile(Project project) {
+        return readPropertyFromGradleFile(project, VERSION_PROP_NAME)
+    }
+
+    static String readPropertyFromGradleFile(Project project, String prop) {
+        File propertiesFile = project.file(Project.GRADLE_PROPERTIES)
+        if (propertiesFile.file) {
+            Properties properties = new Properties()
+            properties.load(propertiesFile.newDataInputStream())
+            return properties.getProperty(prop)
+        } else {
+            return null
+        }
+    }
+
+    static void updateProjectVersion(Project project, String version) {
         File propertiesFile = project.file(Project.GRADLE_PROPERTIES)
         if (!propertiesFile.file) {
             propertiesFile.append("version=${version}")
@@ -23,18 +40,7 @@ class GradlePropertiesHelper {
         }
     }
 
-    static String readPropertyFromGradleFile(Project project, String prop) {
-        File propertiesFile = project.file(Project.GRADLE_PROPERTIES)
-        if (propertiesFile.file) {
-            Properties properties = new Properties()
-            properties.load(propertiesFile.newDataInputStream())
-            return properties.getProperty(prop)
-        } else {
-            return null
-        }
-    }
-
-    static String getProjectVersion(Project project) {
+    static String getVersion(Project project) {
         if (!project.hasProperty('version')) {
             throw new GradleException('version or releaseVersion property have to be present')
         }
@@ -42,6 +48,10 @@ class GradlePropertiesHelper {
         if (version == "unspecified") {
             throw new GradleException("Cannot get version property from ${Project.GRADLE_PROPERTIES}")
         }
-        ArtifactHelper.removeSnapshot(version)
+        return version;
+    }
+
+    static String getVersionWithoutSnapshot(Project project) {
+        return ArtifactHelper.removeSnapshot(getVersion(project))
     }
 }

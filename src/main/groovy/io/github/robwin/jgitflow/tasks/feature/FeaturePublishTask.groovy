@@ -16,31 +16,21 @@
  *
  *
  */
-package io.github.robwin.jgitflow.tasks
+package io.github.robwin.jgitflow.tasks.feature
+
 import com.atlassian.jgitflow.core.JGitFlow
-import io.github.robwin.jgitflow.tasks.credentialsprovider.CredentialsProviderHelper
-import org.eclipse.jgit.api.MergeResult
-import org.gradle.api.GradleException
+import io.github.robwin.jgitflow.credentialsprovider.CredentialsProviderHelper
+import io.github.robwin.jgitflow.tasks.AbstractCommandTask
 import org.gradle.api.tasks.TaskAction
 
-class FeatureFinishTask extends AbstractCommandTask  {
+class FeaturePublishTask extends AbstractCommandTask {
 
     @TaskAction
-    void finish(){
+    void publish() {
         String featureName = project.property('featureName')
-        CredentialsProviderHelper.setupCredentialProvider(project)
+        CredentialsProviderHelper.getCredentials(project)
         JGitFlow flow = JGitFlow.get(project.rootProject.rootDir)
-        def command = flow.featureFinish(featureName)
-
-        setCommandPrefixAndSuffix(command)
-
-        MergeResult mergeResult = command.call()
-        if (!mergeResult.getMergeStatus().isSuccessful())
-        {
-            getLogger().error("Error merging into " + flow.getDevelopBranchName() + ":");
-            getLogger().error(mergeResult.toString());
-            throw new GradleException("Error while merging feature!");
-        }
+        flow.featurePublish(featureName).setPush(true).call()
         flow.git().close()
     }
 }

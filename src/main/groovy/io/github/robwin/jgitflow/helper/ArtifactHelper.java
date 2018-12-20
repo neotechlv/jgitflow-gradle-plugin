@@ -16,7 +16,7 @@
  *
  *
  */
-package io.github.robwin.jgitflow.tasks.helper;
+package io.github.robwin.jgitflow.helper;
 
 import com.github.zafarkhaja.semver.Version;
 import org.gradle.api.GradleException;
@@ -48,6 +48,16 @@ public class ArtifactHelper {
 
     public static String newSnapshotVersion(String version, String versionStrategy) {
         return Version.valueOf(incrementVersion(version, versionStrategy))
+                .setPreReleaseVersion(SNAPSHOT_VERSION)
+                .toString();
+    }
+
+    public static String incrementMinor(String version) {
+        return incrementVersion(version, "MINOR");
+    }
+
+    public static String toSnapshot(String version) {
+        return Version.valueOf(version)
                 .setPreReleaseVersion(SNAPSHOT_VERSION)
                 .toString();
     }

@@ -16,23 +16,21 @@
  *
  *
  */
-package io.github.robwin.jgitflow.tasks
+package io.github.robwin.jgitflow.tasks.hotfix
+
 import com.atlassian.jgitflow.core.JGitFlow
-import io.github.robwin.jgitflow.tasks.credentialsprovider.CredentialsProviderHelper
+import io.github.robwin.jgitflow.credentialsprovider.CredentialsProviderHelper
+import io.github.robwin.jgitflow.tasks.AbstractCommandTask
 import org.gradle.api.tasks.TaskAction
 
-class HotfixPublishTask extends AbstractCommandTask  {
+class HotfixPublishTask extends AbstractCommandTask {
 
     @TaskAction
-    void publish(){
+    void publish() {
         String hotfixName = project.property('hotfixName')
-        CredentialsProviderHelper.setupCredentialProvider(project)
+        CredentialsProviderHelper.getCredentials(project)
         JGitFlow flow = JGitFlow.get(project.rootProject.rootDir)
-        def command = flow.hotfixPublish(hotfixName)
-
-        setCommandPrefixAndSuffix(command)
-
-        command.call()
+        flow.hotfixPublish(hotfixName).call()
         flow.git().close()
     }
 }

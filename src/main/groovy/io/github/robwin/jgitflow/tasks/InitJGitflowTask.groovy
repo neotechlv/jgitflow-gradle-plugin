@@ -20,7 +20,7 @@ package io.github.robwin.jgitflow.tasks
 
 import com.atlassian.jgitflow.core.InitContext
 import com.atlassian.jgitflow.core.JGitFlow
-import io.github.robwin.jgitflow.tasks.credentialsprovider.CredentialsProviderHelper
+import io.github.robwin.jgitflow.credentialsprovider.CredentialsProviderHelper
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
@@ -55,7 +55,7 @@ class InitJGitflowTask extends DefaultTask {
 
     @TaskAction
     void init(){
-        CredentialsProviderHelper.setupCredentialProvider(project)
+        CredentialsProviderHelper.getCredentials(project)
         InitContext initContext = new InitContext()
         initContext.setMaster(master)
                 .setDevelop(develop)

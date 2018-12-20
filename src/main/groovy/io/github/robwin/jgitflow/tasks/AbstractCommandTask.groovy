@@ -17,40 +17,22 @@
  *
  */
 package io.github.robwin.jgitflow.tasks
-import com.atlassian.jgitflow.core.command.JGitFlowCommand
-import org.codehaus.groovy.util.StringUtil
+
+
+import com.google.common.base.Strings
 import org.gradle.api.DefaultTask
+import org.gradle.api.Project
 
 class AbstractCommandTask extends DefaultTask {
 
-	static final String BLANK = ""
-	static final String SPACE = " "
+    private static final String PUSH_RELEASE_PROP_NAME = "push"
 
-	void setCommandPrefixAndSuffix(JGitFlowCommand command) {
-		// Set scmMessagePrefix if present
-		if (project.hasProperty('scmMessagePrefix')) {
-			command.setScmMessagePrefix(project.property('scmMessagePrefix').toString().trim() + SPACE)
-		}
+    protected static boolean isPushEnabled(Project project) {
+        if (!project.hasProperty(PUSH_RELEASE_PROP_NAME)) {
+            return false
+        }
+        Object value = project.property(PUSH_RELEASE_PROP_NAME)
+        return Strings.isNullOrEmpty(value) || Boolean.TRUE.equals(Boolean.valueOf(value))
+    }
 
-		// Set scmMessageSuffix if present
-		if (project.hasProperty('scmMessageSuffix')) {
-			command.setScmMessageSuffix(SPACE + project.property('scmMessageSuffix').toString().trim())
-		}
-	}
-
-	def getScmMessagePrefix(JGitFlowCommand command) {
-		if (command.getScmMessagePrefix()?.trim()) {
-			return command.getScmMessagePrefix()
-		} else {
-			return BLANK
-		}
-	}
-
-	def getScmMessageSuffix(JGitFlowCommand command) {
-		if (command.getScmMessageSuffix()?.trim()) {
-			return command.getScmMessageSuffix()
-		} else {
-			return BLANK
-		}
-	}
 }

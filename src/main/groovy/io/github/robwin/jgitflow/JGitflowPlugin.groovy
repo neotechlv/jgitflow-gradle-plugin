@@ -18,16 +18,16 @@
  */
 package io.github.robwin.jgitflow
 
-import io.github.robwin.jgitflow.tasks.FeatureFinishTask
-import io.github.robwin.jgitflow.tasks.FeaturePublishTask
-import io.github.robwin.jgitflow.tasks.FeatureStartTask
-import io.github.robwin.jgitflow.tasks.HotfixFinishTask
-import io.github.robwin.jgitflow.tasks.HotfixPublishTask
-import io.github.robwin.jgitflow.tasks.HotfixStartTask
+import io.github.robwin.jgitflow.tasks.feature.FeatureFinishTask
+import io.github.robwin.jgitflow.tasks.feature.FeaturePublishTask
+import io.github.robwin.jgitflow.tasks.feature.FeatureStartTask
+import io.github.robwin.jgitflow.tasks.hotfix.HotfixFinishTask
+import io.github.robwin.jgitflow.tasks.hotfix.HotfixPublishTask
+import io.github.robwin.jgitflow.tasks.hotfix.HotfixStartTask
 import io.github.robwin.jgitflow.tasks.InitJGitflowTask
-import io.github.robwin.jgitflow.tasks.ReleaseFinishTask
-import io.github.robwin.jgitflow.tasks.ReleasePublishTask
-import io.github.robwin.jgitflow.tasks.ReleaseStartTask
+import io.github.robwin.jgitflow.tasks.release.ReleaseFinishTask
+import io.github.robwin.jgitflow.tasks.release.ReleasePublishTask
+import io.github.robwin.jgitflow.tasks.release.ReleaseStartTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 

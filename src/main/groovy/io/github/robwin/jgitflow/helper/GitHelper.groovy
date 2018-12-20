@@ -16,7 +16,7 @@
  *
  *
  */
-package io.github.robwin.jgitflow.tasks.helper
+package io.github.robwin.jgitflow.helper
 
 
 import org.eclipse.jgit.api.Git
@@ -37,14 +37,14 @@ class GitHelper {
     private static SecureRandom random = new SecureRandom()
 
     static void add(Git git, String filePattern) {
-        git.add().addFilepattern(filePattern).call();
+        git.add().addFilepattern(filePattern).call()
     }
 
     static void addRemote(Git git, String remoteName, String remoteUri) {
-        StoredConfig config = git.getRepository().getConfig();
-        config.setString("remote", remoteName, "url", remoteUri);
+        StoredConfig config = git.getRepository().getConfig()
+        config.setString("remote", remoteName, "url", remoteUri)
         config.setString("remote", remoteName, "fetch", "+refs/heads/*:refs/remotes/origin/*")
-        config.save();
+        config.save()
     }
 
     static Git createTempRepository(String repoName, boolean bare) {
@@ -81,16 +81,16 @@ class GitHelper {
     }
 
     static List<RevCommit> log(Git git, String branch = null, int maxCount = -1) {
-        LogCommand logCommand = git.log().setMaxCount(maxCount);
+        LogCommand logCommand = git.log().setMaxCount(maxCount)
         if (branch != null) {
             ObjectId branchHead = git.repository.resolve("refs/heads/${branch}")
-            logCommand.add(branchHead);
+            logCommand.add(branchHead)
         }
-        return logCommand.call().asList();
+        return logCommand.call().asList()
     }
 
     static void push(Git git) {
-        git.push().call();
+        git.push().call()
     }
 
     static void commitGradlePropertiesFile(Git git, String message) {
@@ -104,4 +104,21 @@ class GitHelper {
             throw new GradleException("Failed to commit gradle.properties: ${e.message}", e)
         }
     }
+
+    static void requireBranch(String requiredBranch, Git git) {
+        String currentBranch = git.getRepository().getBranch()
+        if (currentBranch != requiredBranch) {
+            throw new GradleException("Please switch to ${requiredBranch} branch. Currently " +
+                    "using: ${currentBranch}")
+        }
+    }
+
+    static void requireCurrentBranchToStartWith(String prefix, Git git) {
+        String currentBranch = git.getRepository().getBranch()
+        if (!currentBranch.startsWith(prefix)) {
+            throw new GradleException("Please switch to ${prefix} branch. Currently " +
+                    "using: ${currentBranch}")
+        }
+    }
+
 }

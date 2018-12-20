@@ -16,29 +16,27 @@
  *
  *
  */
-package io.github.robwin.jgitflow.tasks
+package io.github.robwin.jgitflow.tasks.release
+
 import com.atlassian.jgitflow.core.JGitFlow
-import io.github.robwin.jgitflow.tasks.credentialsprovider.CredentialsProviderHelper
+import io.github.robwin.jgitflow.tasks.AbstractCommandTask
+import io.github.robwin.jgitflow.credentialsprovider.CredentialsProviderHelper
 import org.gradle.api.GradleException
 import org.gradle.api.tasks.TaskAction
 
-class ReleasePublishTask extends AbstractCommandTask  {
+class ReleasePublishTask extends AbstractCommandTask {
 
     @TaskAction
-    void publish(){
-        String releaseVersion = project.properties['releaseVersion']?:project.properties['version']
+    void publish() {
+        String releaseVersion = project.properties['releaseVersion'] ?: project.properties['version']
 
         if (releaseVersion == null) {
             throw new GradleException('version or releaseVersion property have to be present')
         }
 
-        CredentialsProviderHelper.setupCredentialProvider(project)
+        CredentialsProviderHelper.getCredentials(project)
         JGitFlow flow = JGitFlow.get(project.rootProject.rootDir)
-        def command = flow.releasePublish(releaseVersion)
-
-        setCommandPrefixAndSuffix(command)
-
-        flow.releasePublish(releaseVersion).call();
+        flow.releasePublish(releaseVersion).releasePublish(releaseVersion).call()
         flow.git().close()
     }
 }

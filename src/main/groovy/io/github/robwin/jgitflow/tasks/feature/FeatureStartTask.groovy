@@ -16,23 +16,21 @@
  *
  *
  */
-package io.github.robwin.jgitflow.tasks
+package io.github.robwin.jgitflow.tasks.feature
+
 import com.atlassian.jgitflow.core.JGitFlow
-import io.github.robwin.jgitflow.tasks.credentialsprovider.CredentialsProviderHelper
+import io.github.robwin.jgitflow.credentialsprovider.CredentialsProviderHelper
+import io.github.robwin.jgitflow.tasks.AbstractCommandTask
 import org.gradle.api.tasks.TaskAction
 
-class FeaturePublishTask extends AbstractCommandTask  {
+class FeatureStartTask extends AbstractCommandTask {
 
     @TaskAction
-    void publish(){
+    void start() {
         String featureName = project.property('featureName')
-        CredentialsProviderHelper.setupCredentialProvider(project)
+        CredentialsProviderHelper.getCredentials(project)
         JGitFlow flow = JGitFlow.get(project.rootProject.rootDir)
-        def command = flow.featurePublish(featureName)
-
-        setCommandPrefixAndSuffix(command)
-
-        command.setPush(true).call()
+        flow.featureStart(featureName).call()
         flow.git().close()
     }
 }
